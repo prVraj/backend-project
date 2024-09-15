@@ -4,7 +4,8 @@
   "description": "A backend project like a YT",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "nodemon index.js",
+    "type": "module"
   },
   "keywords": [
     "javascript",
@@ -12,5 +13,8 @@
     "sensei"
   ],
   "author": "Vraj sensei",
-  "license": "ISC"
+  "license": "ISC",
+  "devDependencies": {
+    "nodemon": "^3.1.4"
+  }
 }
