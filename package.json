@@ -1,0 +1,16 @@
+{
+  "name": "backendlike-yt",
+  "version": "1.0.0",
+  "description": "A backend project like a YT",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "javascript",
+    "backend",
+    "sensei"
+  ],
+  "author": "Vraj sensei",
+  "license": "ISC"
+}
