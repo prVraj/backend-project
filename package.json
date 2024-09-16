@@ -1,21 +1,28 @@
 {
   "name": "backendlike-yt",
   "version": "1.0.0",
+  "type": "module",
   "description": "A backend project like a YT",
-  "main": "index.js",
+  "main": "src/index.js",
   "scripts": {
-    "test": "nodemon index.js",
-    "type": "module"
+    "dev": "nodemon -r dotenv/config --experimental-json-modules src/index.js"
   },
   "keywords": [
     "javascript",
     "backend",
     "sensei"
   ],
+  "test": "nodemon index.js",
   "author": "Vraj sensei",
   "license": "ISC",
   "devDependencies": {
     "nodemon": "^3.1.4",
     "prettier": "^3.3.3"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "express": "^4.21.0",
+    "mongodb": "^6.9.0",
+    "mongoose": "^8.6.2"
   }
 }
