@@ -16,15 +16,18 @@
   "author": "Vraj sensei",
   "license": "ISC",
   "devDependencies": {
-    "nodemon": "^3.1.4",
+    "express": "^4.17.21",
+    "nodemon": "^3.1.5",
     "prettier": "^3.3.3"
   },
   "dependencies": {
     "bcrypt": "^5.1.1",
     "cloudinary": "^2.5.0",
     "cookie-parser": "^1.4.6",
+    "cookieparser": "^0.1.0",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
+    "eslint": "^9.10.0",
     "express": "^4.21.0",
     "jsonwebtoken": "^9.0.2",
     "mongodb": "^6.9.0",
