@@ -2,23 +2,6 @@ import mongoose, { model, Schema } from "mongoose";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 
-const fullNameSchema = new Schema(
-  {
-    firstname: {
-      type: String,
-      required: true,
-      lowercase: true,
-      index: true,
-    },
-    secondname: {
-      type: String,
-      required: true,
-      lowercase: true,
-      index: true,
-    },
-  },
-  { timestamps: true }
-);
 
 const userSchema = new Schema(
   {
@@ -29,13 +12,22 @@ const userSchema = new Schema(
       unique: true,
       index: true,
     },
-    emial: {
+    email: {
       type: String,
       required: [true, "Email is required!"],
       lowercase: true,
       unique: true,
     },
-    fullname: [fullNameSchema],
+    password: {
+      type: String,
+      required: [true, "password is required!"],
+    },
+    fullname: {
+      type: String,
+      required: true,
+      lowercase: true,
+      index: true,
+    },
     avatar: {
       type: String,
       required: [true, "avatar is required!"],
@@ -46,10 +38,6 @@ const userSchema = new Schema(
     watchHistory: {
       type: Schema.Types.ObjectId,
       ref: "Video",
-    },
-    password: {
-      type: String,
-      required: [true, "password is required!"],
     },
     refreshToken: {
       type: String,

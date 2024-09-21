@@ -7,7 +7,7 @@ import ApiResponse from "../utils/ApiResponce.js";
 const registerUser = asyncHandler( async (req, res) => {
   
   const {username, fullname, email, password} = req.body
-  console.log(`email: ${email}\nusername: ${username}`);
+  // console.log(`email: ${email}\nusername: ${username}`);
 
 
   // handle empty name error
@@ -23,7 +23,7 @@ const registerUser = asyncHandler( async (req, res) => {
 
   // handle existed user 
 
-  const existedUser =  User.findOne({
+  const existedUser = await User.findOne({
     $or: [{ email }, { username }]
   })
   // console.log(existedUser);
@@ -34,10 +34,15 @@ const registerUser = asyncHandler( async (req, res) => {
   }
 
 
-  //handle avatar problems
+  //handle avatar and cover image problems
 
   const localAvatar = req.files?.avatar[0]?.path;
-  const localCoverImg = req.files?.coverImg[0]?.path;
+  // const localCoverImg = req.files?.coverImg[0]?.path;
+
+  let localCoverImg;
+  if (req.files && Array.isArray(req.files.coverImg) && req.files.coverImg.lenght > 0) {
+    localCoverImg = req.files.coverImg[0].path;
+  }
 
   if (!localAvatar) {
     throw new ApiError(400, "Avatar is required!")
@@ -53,7 +58,7 @@ const registerUser = asyncHandler( async (req, res) => {
 
   // add user in DB
 
-  const user = User.create({
+  const user = await User.create({
     fullname,
     username: username.toLowerCase(),
     avatar: avatar.url,
@@ -67,7 +72,7 @@ const registerUser = asyncHandler( async (req, res) => {
   )
 
   if (!createdUser) {
-    throw new ApiError(500, "Something went wrong whilee creating a user!")
+    throw new ApiError(500, "Something went wrong while creating a user!")
   }
 
   return res.status(201).json(
