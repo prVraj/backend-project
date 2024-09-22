@@ -4,6 +4,26 @@ import { User } from "../models/user.model.js";
 import uploadOnCloudinary from "../utils/cloudinary.js";
 import ApiResponse from "../utils/ApiResponce.js";
 
+
+// getting refresh and access tokens
+const generateAccessAndRefreshTokens = async (userId) => {
+  try {
+    const user = await User.findById(userId)
+
+    const accessToken = user.generateAccessToken()
+    const refreshToken = user.generateRefreshToken()
+
+    user.refreshToken = refreshToken
+    await user.save({validateBeforeSave: false})
+
+    return { accessToken, refreshToken }
+
+  } catch (error) {
+    throw new ApiError(500, "something went wrong while creating a access andd refresh token!")
+  }
+}
+
+// logic of register User
 const registerUser = asyncHandler( async (req, res) => {
   
   const {username, fullname, email, password} = req.body
@@ -16,7 +36,7 @@ const registerUser = asyncHandler( async (req, res) => {
     [username, fullname, email, password].some((fields) => 
       fields?.trim() === "" )
   ) {
-    throw new ApiError(400, "All given feilds required!!")
+    throw new ApiError(400, "All given fields required!!")
   }
 
 
@@ -82,4 +102,90 @@ const registerUser = asyncHandler( async (req, res) => {
 });
 
 
-export {registerUser}
+// logic of login User
+const loginUser = asyncHandler( async (req, res) => {
+
+  const {email, username, password} = req.body
+
+  // checking user enters required field or not
+  if (!username || !email) {
+    throw new ApiError(400, "either Username or Email is required!");
+  }
+
+  // user is exist or not
+   const existedUser = await User.findOne({
+     $or: [{username}, {email}]
+  })
+
+  if (!existedUser) {
+    throw new ApiError(404, "User not found! Please register first")
+  }
+
+  // password validation
+  const isPasswordValid = await user.isPasswordCorrect(password);
+
+  if (!isPasswordValid) {
+    throw new ApiError(401, "password is not matched!");
+  }
+
+  const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(user._id);
+
+  // refuse fields which we don't want
+  const loggedInUser = await User.findById(user._id).
+  select(" -password -refreshToken ")
+
+  const option = {
+    httpOnly: true,
+    secure: true
+  }
+  
+  return res
+  .status( 200 )
+  .cookie( "accessToken", accessToken, option )
+  .cookie( "refreshToken", refreshToken, option )
+  .json(
+    200,
+    {
+      user: loggedInUser, accessToken, refreshToken
+    },
+    "login successfully!"
+  )
+
+})
+
+
+// logic of logout User
+
+const logoutUser = asyncHandler(async( req, res ) => {
+  
+  await User.findByIdAndUpdate(
+    req.body._id,
+    {
+      $set : {
+        refreshToken: undefined,
+      }
+    },
+    {
+      new: true
+    }
+
+  )
+
+  const option = {
+    httpOnly: true,
+    secure: true
+  }
+
+  return res
+  .status(200)
+  .clearCookie("accessToken", option)
+  .clearCookie("refreshToken", option)
+  .json(200, {}, "User logged out successfully")
+
+})
+
+export {
+  registerUser,
+  loginUser,
+  logoutUser,
+}
