@@ -6,22 +6,28 @@ import ApiResponse from "../utils/ApiResponce.js";
 
 
 // getting refresh and access tokens
-const generateAccessAndRefreshTokens = async (userId) => {
+const generateAccessAndRefereshTokens = async(userId) =>{
   try {
-    const user = await User.findById(userId)
+      const user = await User.findById(userId)
+      if (!user) {
+        throw new ApiError(404, "User not found");
+      }
+      
+      const accessToken = user.generateAccessToken()
+      const refreshToken = user.generateRefreshToken()
 
-    const accessToken = user.generateAccessToken()
-    const refreshToken = user.generateRefreshToken()
+      user.refreshToken = refreshToken
+      await user.save({ validateBeforeSave: false })
 
-    user.refreshToken = refreshToken
-    await user.save({validateBeforeSave: false})
+      return {accessToken, refreshToken}
 
-    return { accessToken, refreshToken }
 
   } catch (error) {
-    throw new ApiError(500, "something went wrong while creating a access andd refresh token!")
+    console.error("Error generating tokens:", error);
+    throw new ApiError(500, "Something went wrong while generating referesh and access token")
   }
 }
+
 
 // logic of register User
 const registerUser = asyncHandler( async (req, res) => {
@@ -46,10 +52,10 @@ const registerUser = asyncHandler( async (req, res) => {
   const existedUser = await User.findOne({
     $or: [{ email }, { username }]
   })
-  // console.log(existedUser);
+  // console.log(user);
   
   
-  if (existedUser) {
+  if (!existedUser) {
     throw new ApiError(409, "User already exists!")
   }
 
@@ -108,16 +114,21 @@ const loginUser = asyncHandler( async (req, res) => {
   const {email, username, password} = req.body
 
   // checking user enters required field or not
-  if (!username || !email) {
+  if (!username && !email) {
     throw new ApiError(400, "either Username or Email is required!");
   }
 
+
+  // if (!(username || email)) {
+  //   throw new ApiError(400, "either Username or Email is required!");
+  // }
+
   // user is exist or not
-   const existedUser = await User.findOne({
+   const user = await User.findOne({
      $or: [{username}, {email}]
   })
 
-  if (!existedUser) {
+  if (!user) {
     throw new ApiError(404, "User not found! Please register first")
   }
 
@@ -128,11 +139,10 @@ const loginUser = asyncHandler( async (req, res) => {
     throw new ApiError(401, "password is not matched!");
   }
 
-  const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(user._id);
+  const { accessToken, refreshToken } = await generateAccessAndRefereshTokens(user._id);
 
   // refuse fields which we don't want
-  const loggedInUser = await User.findById(user._id).
-  select(" -password -refreshToken ")
+  const loggedInUser = await User.findById(user._id).select(" -password -refreshToken ")
 
   const option = {
     httpOnly: true,
@@ -144,11 +154,13 @@ const loginUser = asyncHandler( async (req, res) => {
   .cookie( "accessToken", accessToken, option )
   .cookie( "refreshToken", refreshToken, option )
   .json(
-    200,
-    {
-      user: loggedInUser, accessToken, refreshToken
-    },
-    "login successfully!"
+    new ApiResponse(
+      200, 
+      {
+          user: loggedInUser, accessToken, refreshToken
+      },
+      "User logged In Successfully"
+  )
   )
 
 })
@@ -180,7 +192,7 @@ const logoutUser = asyncHandler(async( req, res ) => {
   .status(200)
   .clearCookie("accessToken", option)
   .clearCookie("refreshToken", option)
-  .json(200, {}, "User logged out successfully")
+  .json( new ApiResponse (200, {}, "User logged out successfully"))
 
 })
 
